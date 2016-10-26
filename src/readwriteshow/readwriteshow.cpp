@@ -12,7 +12,7 @@ process(const char* imsname, const char* imdname)
 	Mat imsimg = imread(imsname,1);
 
 	if(!imsimg.data){
-		std::cout << "No image data" << endl;
+		std::cerr << "No image data" << endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -29,8 +29,16 @@ process(const char* imsname, const char* imdname)
 	int height = imssize.height;
 
 	std::cout << "Dimension " << imsname << " : " << width << "x" << height << endl;
-
-	imwrite(imdname,imdimg);
+	
+	try
+	{
+		imwrite(imdname,imdimg);
+	}
+	catch(cv::Exception& e)
+	{
+		cerr << "Error writing file \"" << imdname << "\". \nReason: " << e.msg << endl;
+		exit(EXIT_FAILURE);
+	}
 
 	waitKey(0);
 }
