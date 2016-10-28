@@ -31,18 +31,44 @@ process(const char* imsname, int radius, int constante)
 	unsigned int width = imssize.width;
 	unsigned int height = imssize.height;
 
-	//Mat thimg(height, width, CV_8UC1);
+	Mat thimg(height, width, CV_8UC1);
 	Mat thcvmeanimg(height, width, CV_8UC1);
 	Mat thcvgaussimg(height, width, CV_8UC1);
-	//Mat diffimg(height, width, CV_8UC1);
+	Mat diffimg(height, width, CV_8UC1);
 	
-	adaptiveThreshold(imsimg,thcvmeanimg,255,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,radius,constante);
-	adaptiveThreshold(imsimg,thcvgaussimg,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,radius,constante);
+	adaptiveThreshold(imsimg,thcvmeanimg,255,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,2*radius+1,constante);
+	adaptiveThreshold(imsimg,thcvgaussimg,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,2*radius+1,constante);
+	
+	for(unsigned int i = 0 ; i < height ; ++i)
+	{
+		for(unsigned int j = 0 ; j < width ; ++j)
+		{
+			unsigned int iMin = std::max(0, (int) i - radius);
+			unsigned int iMax = std::min((int) height-1, (int) i + radius);
+			unsigned int jMin = std::max(0, (int) j - radius);
+			unsigned int jMax = std::min((int) width-1, (int) j + radius);
+			
+						
+			int mean = 0;
+			int cmp = 0;
+			for(unsigned int x = jMin; x <= jMax; ++x)
+			{
+				for(unsigned int y = iMin; y <= iMax; ++y)
+				{
+					mean += imsimg.at<uchar>(y,x);
+					cmp++;
+				}
+			}
+			mean = mean / cmp;
+			thimg.at<uchar>(i,j) = (imsimg.at<uchar>(i,j) > (mean - constante)) * 255;
+			diffimg.at<uchar>(i,j) = abs(thimg.at<uchar>(i,j) - thcvmeanimg.at<uchar>(i,j));			
+		}
+	}
 
-	//imwrite("th.png",thimg);
+	imwrite("th.png",thimg);
 	imwrite("th-cv-mean.png",thcvmeanimg);
 	imwrite("th-cv-gauss.png",thcvgaussimg);
-	//imwrite("diff.png",diffimg);
+	imwrite("diff.png",diffimg);
 }
 
 void
