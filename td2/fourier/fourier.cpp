@@ -15,77 +15,74 @@ process(const char* imsname, int freq)
 	if(!imsimg.data){
 		std::cerr << "No image data" << endl;
 		exit(EXIT_FAILURE);
+	}	
+	
+	Mat padded;
+    int m = getOptimalDFTSize( imsimg.rows );
+    int n = getOptimalDFTSize( imsimg.cols );
+    copyMakeBorder(imsimg, padded, 0, m - imsimg.rows, 0, n - imsimg.cols, BORDER_CONSTANT, Scalar::all(0));
+
+    Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+    Mat complexI;
+    merge(planes, 2, complexI);
+
+    dft(complexI, complexI);
+
+    split(complexI, planes);                  
+    Mat mag = planes[0].clone();
+    Mat arg = planes[1].clone();
+    cartToPolar(planes[0], planes[1], mag, arg);
+
+    mag += Scalar::all(1);
+    log(mag, mag);
+
+    // crop the spectrum, if it has an odd number of rows or columns
+    mag = mag(Rect(0, 0, mag.cols & -2, mag.rows & -2));
+
+    // rearrange the quadrants of Fourier image  so that the origin is at the image center
+    int ci = mag.rows;
+    int cj = mag.cols;	
+	Mat magC = mag.clone();
+    Mat argC = arg.clone();
+	for(int i = 0; i < ci; ++i)
+	{
+		for(int j = 0; j < cj; ++j)
+		{
+			magC.at<float>(i,j) = mag.at<float>((i + ci/2)%ci, (j + cj/2)%cj);
+			argC.at<float>(i,j) = arg.at<float>((i + ci/2)%ci, (j + cj/2)%cj);
+		}
 	}
 
-	Size imssize = imsimg.size();
-	unsigned int width = imssize.width;
-	unsigned int height = imssize.height;
-
-	Mat imgMat = Mat_<float>(imsimg);
-	Mat fourierMat = Mat_<std::complex<float> >(height, width);
-	Mat ampMat(height, width, CV_8UC1);
-	Mat freqMat(height, width, CV_8UC1);
+	Mat magCM = magC.clone();
+	magCM.at<float>((freq + ci/2)%ci, ci/2) = 0;
+	magCM.at<float>((-freq + ci/2)%ci, ci/2) = 0;
 	
-	dft(imgMat, fourierMat, DFT_COMPLEX_OUTPUT);	
-	
-	/* Max amplitude */
-	float max = 0;
-	for(unsigned int i = 0; i < height; ++i)
+	for(int i = 0; i < ci; ++i)
 	{
-		for(unsigned int j = 0; j < width; ++j)
+		for(int j = 0; j < cj; ++j)
 		{
-			std::complex<float> c = fourierMat.at<std::complex<float> >(i,j);
-			max = (log(abs(c)) > max) ? log(abs(c)) : max;
+			mag.at<float>(i,j) = magCM.at<float>((i + ci/2)%ci, (j + cj/2)%cj);
 		}
 	}
 	
-	/* Création des matrices d'amplitude et de phase (normalisées + centrées) */
-	for(unsigned int i = 0; i < height; ++i)
-	{
-		for(unsigned int j = 0; j < width; ++j)
-		{
-			std::complex<float> c = fourierMat.at<std::complex<float> >(i,j);
-			freqMat.at<uchar>((i + height / 2) % height, (j + width / 2) % width) = (arg(c) + M_PI) * 255 / (2 * M_PI);
-			ampMat.at<uchar>((i + height / 2) % height, (j + width / 2) % width) = (1 + log(abs(c))) * 255 / (1 + max);
-		}
-	}
+	exp(mag, mag);
+	mag -= Scalar::all(1);
+    
+	polarToCart(mag, arg, planes[0], planes[1]);
+	merge(planes, 2, complexI);
+	Mat inverseTransform;
+    dft(complexI, inverseTransform, DFT_INVERSE|DFT_REAL_OUTPUT);
 	
-	Mat ampMatModif = ampMat.clone();
-	ampMatModif.at<uchar>((freq + height / 2) % height, width / 2) = 0;
-	ampMatModif.at<uchar>((-freq + height / 2) % height, width / 2) = 0;
+    normalize(magC, magC, 0, 255, CV_MINMAX); 
+    normalize(magCM, magCM, 0, 255, CV_MINMAX); 
+    normalize(argC, argC, 0, 255, CV_MINMAX); 
+    normalize(planes[0], planes[0], 0, 255, CV_MINMAX); 
+    normalize(inverseTransform, inverseTransform, 0, 255, CV_MINMAX);
 	
-	
-	imwrite("phase.png",freqMat);
-	imwrite("magnitude.png",ampMat);
-	imwrite("magnitude-modify.png",ampMatModif);
-
-	/* Bon jusqu'ici ça marche bien,  le reste c'est à dire la transformée inverse ben c'est pas aussi cool :s */
-	
-	/* Début des emmerdes */
-
-	/* Modification de la matrice fourier pour transformée inverse */
-	for(unsigned int i = 0; i < height; ++i)
-	{
-		for(unsigned int j = 0; j < width; ++j)
-		{
-			float amp = exp(ampMatModif.at<uchar>((i - height / 2) % height, (j - width / 2) % width) * (1 + max) / 255 - 1);
-			float arg = freqMat.at<uchar>((i - height / 2) % height, (j - width / 2) % width) * (2 * M_PI) / 255 - M_PI;
-			std::complex<float> c(amp * cos(arg), amp * sin(arg));
-			//fourierMat.at<std::complex<float> >(i,j) = c;
-		}
-	}
-	
-	dft(fourierMat, imgMat, DFT_INVERSE | DFT_REAL_OUTPUT);
-	
-	Mat inverse(height, width, CV_8UC1);
-	for(unsigned int i = 0; i < height; ++i)
-	{
-		for(unsigned int j = 0; j < width; ++j)
-		{
-			inverse.at<uchar>(i,j) = (char)imgMat.at<float>(i,j);
-		}
-	}
-	imwrite("inverse.png",inverse);
+    imwrite("magnitude.png", magC);
+    imwrite("magnitude-modify.png", magCM);
+    imwrite("phase.png", argC);
+    imwrite("inverse.png", inverseTransform);
 }
 
 void
