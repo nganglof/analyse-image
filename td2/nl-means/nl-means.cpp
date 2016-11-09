@@ -4,21 +4,22 @@
 #include <math.h>
 #include <opencv2/opencv.hpp>
 
+#define PATCH_RADIUS 3
+#define RADIUS 5
+
 using namespace cv;
 using namespace std;
 
-bool
-isCorrect(int i, int j, Mat mat){
+bool isCorrect(int i, int j, Mat mat){
 	return (i >= 0 && j >= 0 && i < mat.size().height && j < mat.size().width);
 }
 
-float
-patchesDistance(Mat mat, int p[], int q[], int n){
+float patchesDistance(Mat mat, int p[], int q[]){
 	float S = 0;
 	int pxi,pxj,qxi,qxj;
-	for(int i = -n; i < n; ++i)
+	for(int i = -PATCH_RADIUS; i <= PATCH_RADIUS; ++i)
 	{
-		for(int j = -n; j < n; ++j)
+		for(int j = -PATCH_RADIUS; j <= PATCH_RADIUS; ++j)
 		{
 			pxi = p[0] + i;
 			pxj = p[1] + j;
@@ -31,11 +32,10 @@ patchesDistance(Mat mat, int p[], int q[], int n){
 			
 		}
 	}
-	return S / pow(2*n+1,2);
+	return S / pow(2*PATCH_RADIUS+1,2);
 }
 
-void
-process(float sigma, const char* imsname, const char* imdname)
+void process(float sigma, const char* imsname, const char* imdname)
 {
 	Mat imsimg = imread(imsname,0);
 
@@ -49,33 +49,38 @@ process(float sigma, const char* imsname, const char* imdname)
 	unsigned int height = imssize.height;
 
 	Mat imdimg(height, width, CV_8UC1);
-
-
+	
+	int p[2];
+	int q[2];
 	for(unsigned int i = 0 ; i < height ; ++i)
 	{
 		for(unsigned int j = 0 ; j < width ; ++j)
 		{
-			unsigned int iMin = std::max(0, (int) i - radius);
-			unsigned int iMax = std::min((int) height-1, (int) i + radius);
-			unsigned int jMin = std::max(0, (int) j - radius);
-			unsigned int jMax = std::min((int) width-1, (int) j + radius);
-					
-			float w;
-
+			p[0] = i;
+			p[1] = j;
+			unsigned int iMin = std::max(0, (int) i - RADIUS);
+			unsigned int iMax = std::min((int) height-1, (int) i + RADIUS);
+			unsigned int jMin = std::max(0, (int) j - RADIUS);
+			unsigned int jMax = std::min((int) width-1, (int) j + RADIUS);
+				
+			float w = 0;
+			float N = 0;
+			float D = 0;
 			for(unsigned int x = jMin; x <= jMax; ++x){
 				for(unsigned int y = iMin; y <= iMax; ++y){
+					q[0] = y;
+					q[1] = x;
+					w = exp(-pow(patchesDistance(imsimg, p, q), 2) / (2 * sigma * sigma));
 					
+					N += (w * (float)imsimg.at<uchar>(y, x));
+					D += w;
 				}
 			}
-
-
-
+			imdimg.at<uchar>(i,j) = (char)(N / D);
 		}
 	}
 
-
 	imwrite(imdname,imdimg);
-
 }
 
 void
