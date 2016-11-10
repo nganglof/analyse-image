@@ -8,7 +8,11 @@ LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lopencv_core -lopencv_imgproc -lopencv_hi
 OBJ = morphology.o
 BIN = \
 	make-se\
-	dilation
+	dilation\
+	erosion\
+	closing\
+	opening\
+	labeling
 
 all: $(OBJ) $(BIN)
 

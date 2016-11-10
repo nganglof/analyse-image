@@ -14,7 +14,7 @@ void process(const char* sename, const char* imsname, const char* imdname)
 		std::cerr << "No image data" << endl;
 		exit(EXIT_FAILURE);
 	}
-
+	
 	Size imssize = imsimg.size();
 	unsigned int width = imssize.width;
 	unsigned int height = imssize.height;
@@ -25,12 +25,15 @@ void process(const char* sename, const char* imsname, const char* imdname)
 		exit(EXIT_FAILURE);
 	}
 
-
 	Mat imdimg(height, width, CV_8UC1);
 
- 	void (*pf)(uchar, uchar*);
- 	pf = &maximum;
-	mm(seimg,imsimg,imdimg,pf);
+ 	void (*pfmin)(uchar, uchar*);
+ 	pfmin = &minimum;
+ 	void (*pfmax)(uchar, uchar*);
+ 	pfmax = &maximum;
+	mm(seimg,imsimg,imdimg,pfmax);
+	imsimg = imdimg.clone();
+	mm(seimg,imsimg,imdimg,pfmin);
 
 	imwrite(imdname,imdimg);
 
