@@ -53,8 +53,6 @@ process(float sigma_s, float sigma_g, const char* imsname, const char* imdname)
 			unsigned int iMax = std::min((int)height-1, (int) i + (int)radius);
 			unsigned int jMin = std::max(0, (int)j - (int)radius);
 			unsigned int jMax = std::min((int)width-1, (int)j + (int)radius);
-			
-			
 						
 			float N = 0.0;
 			float D = 0.0;

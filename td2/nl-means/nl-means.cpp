@@ -17,6 +17,7 @@ bool isCorrect(int i, int j, Mat mat){
 float patchesDistance(Mat mat, int p[], int q[]){
 	float S = 0;
 	int pxi,pxj,qxi,qxj;
+	int cpt = 0;
 	for(int i = -PATCH_RADIUS; i <= PATCH_RADIUS; ++i)
 	{
 		for(int j = -PATCH_RADIUS; j <= PATCH_RADIUS; ++j)
@@ -27,12 +28,14 @@ float patchesDistance(Mat mat, int p[], int q[]){
 			qxj = q[1] + j;
 			if(isCorrect(pxi, pxj, mat) && isCorrect(qxi, qxj, mat))
 			{
-				S += pow(mat.at<uchar>(pxi, pxj) - mat.at<uchar>(qxi, qxj), 2); 
+				float diff = mat.at<uchar>(pxi, pxj) - mat.at<uchar>(qxi, qxj);
+				S += (diff * diff); 
+				cpt++;
 			}
 			
 		}
 	}
-	return S / pow(2*PATCH_RADIUS+1,2);
+	return (S / (float)cpt);
 }
 
 void process(float sigma, const char* imsname, const char* imdname)
@@ -63,23 +66,23 @@ void process(float sigma, const char* imsname, const char* imdname)
 			unsigned int jMin = std::max(0, (int) j - RADIUS);
 			unsigned int jMax = std::min((int) width-1, (int) j + RADIUS);
 				
-			float w = 0;
-			float N = 0;
-			float D = 0;
+			float w = 0.;
+			float N = 0.;
+			float D = 0.;
 			for(unsigned int x = jMin; x <= jMax; ++x){
 				for(unsigned int y = iMin; y <= iMax; ++y){
 					q[0] = y;
 					q[1] = x;
-					w = exp(-pow(patchesDistance(imsimg, p, q), 2) / (2 * sigma * sigma));
-					
-					N += (w * (float)imsimg.at<uchar>(y, x));
+				
+					float dist = patchesDistance(imsimg, p, q);
+					w = (float)(exp(-(dist) / (float)(2. * sigma * sigma)));
+					N += (w * imsimg.at<uchar>(y, x));
 					D += w;
 				}
 			}
-			imdimg.at<uchar>(i,j) = (char)(N / D);
+			imdimg.at<uchar>(i,j) = (uchar)(N / D);
 		}
 	}
-
 	imwrite(imdname,imdimg);
 }
 
