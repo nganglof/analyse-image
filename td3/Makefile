@@ -12,7 +12,9 @@ BIN = \
 	erosion\
 	closing\
 	opening\
-	labeling
+	labeling\
+	distance\
+	skeleton
 
 all: $(OBJ) $(BIN)
 

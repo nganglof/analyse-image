@@ -15,8 +15,7 @@
  * @param  imd: the destination image
  * @param  pf: a pointer on a ordering function
  */
-void
-mm(cv::Mat se, cv::Mat ims, cv::Mat imd, void (*pf)(uchar, uchar*));
+void mm(cv::Mat se, cv::Mat ims, cv::Mat imd, void (*pf)(uchar, uchar*));
 
 
 /**
@@ -24,15 +23,17 @@ mm(cv::Mat se, cv::Mat ims, cv::Mat imd, void (*pf)(uchar, uchar*));
  * @param  val: the input value
  * @param  max: the value to update
  */
-void
-maximum(uchar val, uchar* max);
+void maximum(uchar val, uchar* max);
 
 /**
  * @brief  ordering function, if val is geater than max then update max
  * @param  val: the input value
  * @param  max: the value to update
  */
-void
-minimum(uchar val, uchar* min);
+void minimum(uchar val, uchar* min);
 
+
+void rangeChange(uchar min, uchar max, cv::Mat ims, cv::Mat imd);
+
+void matDiff(cv::Mat ims, cv::Mat imd, cv::Mat res);
 
