@@ -14,7 +14,8 @@ BIN = \
 	opening\
 	labeling\
 	distance\
-	skeleton
+	skeleton\
+	pyramid
 
 all: $(OBJ) $(BIN)
 
