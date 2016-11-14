@@ -84,22 +84,22 @@ process(const char* imsname)
 	}
 	absdiff(imsimg, expan, diff);
 	
-	imshow("CoinReduce", reduce);
+	imshow("Reduce", reduce);
 	waitKey(0);
-	imshow("CoinExpand", expan);
+	imshow("Expand", expan);
 	waitKey(0);
-	imshow("CoinDiff", diff);
+	imshow("Difference", diff);
 	waitKey(0);
 	
 	pyrDown(imsimg, reduceCV, Size(width/2, height/2));
 	pyrUp(reduceCV, expanCV, Size(width, height));
 	absdiff(imsimg, expanCV, diffCV);
 	
-	imshow("CoinReduce", reduceCV);
+	imshow("ReduceCV", reduceCV);
 	waitKey(0);
-	imshow("CoinExpand", expanCV);
+	imshow("ExpandCV", expanCV);
 	waitKey(0);
-	imshow("CoinDiff", diffCV);
+	imshow("DifferenceCV", diffCV);
 	waitKey(0);
 	
 }
