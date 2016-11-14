@@ -13,6 +13,7 @@ BIN = \
 	closing\
 	opening\
 	labeling\
+	labeling-color\
 	distance\
 	skeleton\
 	pyramid
