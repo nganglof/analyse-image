@@ -16,7 +16,10 @@ BIN = \
 	labeling-color\
 	distance\
 	skeleton\
-	pyramid
+	pyramid\
+	binarization\
+	substract\
+	add-boundary
 
 all: $(OBJ) $(BIN)
 
