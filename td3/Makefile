@@ -16,7 +16,8 @@ BIN = \
 	labeling-color\
 	distance\
 	skeleton\
-	pyramid
+	pyramid\
+	test
 
 all: $(OBJ) $(BIN)
 
