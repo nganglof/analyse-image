@@ -1,0 +1,7 @@
+[1] - http://research.microsoft.com/en-us/projects/objectclassrecognition/
+
+[2] - R. Achanta, A. Shaji, K. Smith, A. Lucchi, P. Fua, and S. Susstrunk. SLIC superpixels compared to state-of-the-art superpixel methods. PAMI, 34(11):2274–2282, 2012.
+
+[3] - https://homes.di.unimi.it/ferrari/ElabImm2011_12/EI2011_12_16_segmentation_double.pdf
+
+[4] - http://www.biomecardio.com/matlab/otsu.html#1
