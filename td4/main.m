@@ -4,6 +4,7 @@ clc
 
 %MEX compilation
 mex -O CFLAGS="\$CFLAGS -Wall -Wextra -W -std=c99" Mex/Superpixel_fct.c -outdir Mex/
+addpath('Mex');
 
 
 %% Image loading
@@ -40,9 +41,22 @@ drawnow;
 
 %% 2)- Features extraction
 
-feature_size = 10; 
-SP_nbr = max(label_map(:));  %number of labels = number of superpixels
+feature_size = 10;
+SP_nbr = max(label_map(:)); %number of labels = number of superpixels
 SP_feat = zeros(SP_nbr, feature_size);
+
+img_g = rgb2gray(img);
+img_moy = zeros(size(img,1), size(img,2));
+
+for i=1:SP_nbr
+    sp_pos = label_map == i;
+    r = min(img_g(sp_pos));
+    img_moy(sp_pos) = r;
+end
+
+figure,
+imagesc(img_moy)
+colormap(gray)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% TO MODIFY %%%%%%%%%%%%%%%%%%%%%%%%%
