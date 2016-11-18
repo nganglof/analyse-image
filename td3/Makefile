@@ -17,7 +17,9 @@ BIN = \
 	distance\
 	skeleton\
 	pyramid\
-	test
+	binarization\
+	substract\
+	add-boundary
 
 all: $(OBJ) $(BIN)
 
