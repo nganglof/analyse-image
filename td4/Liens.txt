@@ -5,3 +5,5 @@
 [3] - https://homes.di.unimi.it/ferrari/ElabImm2011_12/EI2011_12_16_segmentation_double.pdf
 
 [4] - http://www.biomecardio.com/matlab/otsu.html#1
+
+https://lezoray.users.greyc.fr/Students/Bernard_MS_2013.pdf
