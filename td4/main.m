@@ -10,7 +10,7 @@ addpath('Mex');
 
 %% Image loading
 
-img = imread('Img/bench.JPG');  %cow.JPG   bird.JPG
+img = imread('Img/cow.JPG');  %cow.JPG   bird.JPG   bench.JPG
 img = double(img)/255;
 
 
@@ -20,13 +20,10 @@ img = double(img)/255;
 SP_nbr = 500;     %to modify
 compactness  = 10;   %to modify
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%% TO MODIFY %%%%%%%%%%%%%%%%%%%%%%%%%
 %Superpixel decomposition
 tic;
 label_map = double(Superpixel_fct(single(img), SP_nbr, compactness));
 toc;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %Display borders
@@ -44,7 +41,7 @@ drawnow;
 
 % Initialisation
 
-feature_size = 10;
+feature_size = 15;
 SP_nbr = max(label_map(:)); %number of labels = number of superpixels
 SP_feat = zeros(SP_nbr, feature_size);
 img_red = img(:,:,1); % Red channel
@@ -55,10 +52,28 @@ img_mean = zeros(size(img,1), size(img,2));
 img_meanR = zeros(size(img,1), size(img,2));
 img_meanG = zeros(size(img,1), size(img,2));
 img_meanB = zeros(size(img,1), size(img,2));
+img_min = zeros(size(img,1), size(img,2));
+img_minR = zeros(size(img,1), size(img,2));
+img_minG = zeros(size(img,1), size(img,2));
+img_minB = zeros(size(img,1), size(img,2));
+img_max = zeros(size(img,1), size(img,2));
+img_maxR = zeros(size(img,1), size(img,2));
+img_maxG = zeros(size(img,1), size(img,2));
+img_maxB = zeros(size(img,1), size(img,2));
 img_hist_gray = zeros(size(img,1), size(img,2));
 img_hist_red = zeros(size(img,1), size(img,2));
 img_hist_green = zeros(size(img,1), size(img,2));
 img_hist_blue = zeros(size(img,1), size(img,2));
+img_mean_color = zeros(size(img,1), size(img,2), size(img,3));
+img_min_color = zeros(size(img,1), size(img,2), size(img,3));
+img_max_color = zeros(size(img,1), size(img,2), size(img,3));
+img_hist_color = zeros(size(img,1), size(img,2), size(img,3));
+
+
+imgHist_gray = cumsum(imhist(img_g) / (size(img_g,1) * size(img_g,2)));
+imgHist_red = cumsum(imhist(img_red) / (size(img_red,1) * size(img_red,2)));
+imgHist_green = cumsum(imhist(img_green) / (size(img_green,1) * size(img_green,2)));
+imgHist_blue = cumsum(imhist(img_blue) / (size(img_blue,1) * size(img_blue,2)));
 
 % Extraction des features
 
@@ -70,16 +85,25 @@ for i=1:SP_nbr+1
     SP_feat(i,2) = mean(img_red(sp_pos));
     SP_feat(i,3) = mean(img_green(sp_pos));
     SP_feat(i,4) = mean(img_blue(sp_pos));
+    SP_feat(i,5) = min(img_g(sp_pos));
+    SP_feat(i,6) = min(img_red(sp_pos));
+    SP_feat(i,7) = min(img_green(sp_pos));
+    SP_feat(i,8) = min(img_blue(sp_pos));
+    SP_feat(i,9) = max(img_g(sp_pos));
+    SP_feat(i,10) = max(img_red(sp_pos));
+    SP_feat(i,11) = max(img_green(sp_pos));
+    SP_feat(i,12) = max(img_blue(sp_pos));
+    SP_feat(i,13) = imgHist_gray(uint8(SP_feat(i,1) * 255) + 1);
+    SP_feat(i,14) = imgHist_red(uint8(SP_feat(i,2) * 255) + 1);
+    SP_feat(i,15) = imgHist_green(uint8(SP_feat(i,3) * 255) + 1);
+    SP_feat(i,16) = imgHist_blue(uint8(SP_feat(i,4) * 255) + 1);
 end
 
 
 
 % Histogrammes
 
-imgHist_gray = cumsum(imhist(img_g) / (size(img_g,1) * size(img_g,2)));
-imgHist_red = cumsum(imhist(img_red) / (size(img_red,1) * size(img_red,2)));
-imgHist_green = cumsum(imhist(img_green) / (size(img_green,1) * size(img_green,2)));
-imgHist_blue = cumsum(imhist(img_blue) / (size(img_blue,1) * size(img_blue,2)));
+
 for i=1:SP_nbr+1
     sp_pos = label_map == (i-1);
     
@@ -88,44 +112,50 @@ for i=1:SP_nbr+1
     img_meanR(sp_pos) = SP_feat(i,2);
     img_meanG(sp_pos) = SP_feat(i,3);
     img_meanB(sp_pos) = SP_feat(i,4);
-    img_hist_gray(sp_pos) = imgHist_gray(uint8(SP_feat(i,1) * 255) + 1);
-    img_hist_red(sp_pos) = imgHist_red(uint8(SP_feat(i,2) * 255) + 1);
-    img_hist_green(sp_pos) = imgHist_green(uint8(SP_feat(i,3) * 255) + 1);
-    img_hist_blue(sp_pos) = imgHist_blue(uint8(SP_feat(i,4) * 255) + 1);
+    img_min(sp_pos) = SP_feat(i,5);
+    img_minR(sp_pos) = SP_feat(i,6);
+    img_minG(sp_pos) = SP_feat(i,7);
+    img_minB(sp_pos) = SP_feat(i,8);
+    img_max(sp_pos) = SP_feat(i,9);
+    img_maxR(sp_pos) = SP_feat(i,10);
+    img_maxG(sp_pos) = SP_feat(i,11);
+    img_maxB(sp_pos) = SP_feat(i,12);
+    img_hist_gray(sp_pos) = SP_feat(i,13);
+    img_hist_red(sp_pos) = SP_feat(i,14);
+    img_hist_green(sp_pos) = SP_feat(i,15);
+    img_hist_blue(sp_pos) = SP_feat(i,16);
 end
 
-img_mean_color = zeros(size(img,1), size(img,2), size(img,3));
+
 img_mean_color(:,:,1) = img_meanR;
 img_mean_color(:,:,2) = img_meanG;
 img_mean_color(:,:,3) = img_meanB;
-img_hist_color = zeros(size(img,1), size(img,2), size(img,3));
+img_min_color(:,:,1) = img_minR;
+img_min_color(:,:,2) = img_minG;
+img_min_color(:,:,3) = img_minB;
+img_max_color(:,:,1) = img_maxR;
+img_max_color(:,:,2) = img_maxG;
+img_max_color(:,:,3) = img_maxB;
 img_hist_color(:,:,1) = img_hist_red;
 img_hist_color(:,:,2) = img_hist_green;
 img_hist_color(:,:,3) = img_hist_blue;
 
 % Affichage
 
-figure, imagesc(img); title('Image originale');
-figure, imagesc(img_mean); colormap(gray); title('Image Superpixels moyenne niveau de gris');
-figure, imagesc(img_mean_color); title('Image Superpixels moyenne couleur');
-figure, imagesc(img_hist_gray); colormap(gray); title('Image Superpixels histogramme niveau gris');
-figure, imagesc(img_hist_color); title('Image Superpixels histogramme couleur');
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%% TO MODIFY %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%feature extraction (mean levels of gray, mean color, normalized color
-%%%histogram, etc.)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% figure, imagesc(img); title('Image originale');
+% figure, imagesc(img_mean); colormap(gray); title('Image Superpixels moyenne niveau de gris');
+% figure, imagesc(img_mean_color); title('Image Superpixels moyenne couleur');
+% figure, imagesc(img_min); colormap(gray); title('Image Superpixels min niveau de gris');
+% figure, imagesc(img_min_color); title('Image Superpixels min couleur');
+% figure, imagesc(img_max); colormap(gray); title('Image Superpixels max niveau de gris');
+% figure, imagesc(img_max_color); title('Image Superpixels max couleur');
+% figure, imagesc(img_hist_gray); colormap(gray); title('Image Superpixels histogramme niveau gris');
+% figure, imagesc(img_hist_color); title('Image Superpixels histogramme couleur');
 
 
 %% 3)- Classification
 
 N = 2; %number of classes
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%% TO MODIFY %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%Classification function (OTSU, global thresholding)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Initialisation
 img_mean_class2 = zeros(size(img,1), size(img,2));
@@ -171,26 +201,46 @@ img_gray_otsu2 = otsu(img_mean,2);
 img_gray_otsu3 = otsu(img_mean,3);
 img_otsu2 = otsu(img_mean_color,2);
 img_otsu3 = otsu(img_mean_color,3);
+img_min_gray_otsu2 = otsu(img_min,2);
+img_min_gray_otsu3 = otsu(img_min,3);
+img_min_otsu2 = otsu(img_min_color,2);
+img_min_otsu3 = otsu(img_min_color,3);
+img_max_gray_otsu2 = otsu(img_max,2);
+img_max_gray_otsu3 = otsu(img_max,3);
+img_max_otsu2 = otsu(img_max_color,2);
+img_max_otsu3 = otsu(img_max_color,3);
+img_hist_gray_otsu2 = otsu(img_hist_gray, 2);
+img_hist_gray_otsu3 = otsu(img_hist_gray, 3);
+img_hist_color_otsu2 = otsu(img_hist_color, 2);
+img_hist_color_otsu3 = otsu(img_hist_color, 3);
 
 % Affichage
 
-figure, imagesc(img_mean_class2); colormap(gray); title('Seuillage global niveau de gris 2 classes');
-figure, imagesc(img_mean_class3); colormap(gray); title('Seuillage global niveau de gris 3 classes');
-figure, imagesc(img_class2); title('Seuillage global couleur 2 classes');
-figure, imagesc(img_class3); title('Seuillage global couleur 3 classes');
-figure, imagesc(img_gray_otsu2); colormap(gray); title('Otsu niveau de gris 2 classes');
-figure, imagesc(img_gray_otsu3); colormap(gray); title('Otsu niveau de gris 3 classes');
-figure, imagesc(img_otsu2); title('Otsu couleur 2 classes');
-figure, imagesc(img_otsu3); title('Otsu couleur 3 classes');
+% figure, imagesc(img_mean_class2); colormap(gray); title('Seuillage global niveau de gris 2 classes');
+% figure, imagesc(img_mean_class3); colormap(gray); title('Seuillage global niveau de gris 3 classes');
+% figure, imagesc(img_class2); title('Seuillage global couleur 2 classes');
+% figure, imagesc(img_class3); title('Seuillage global couleur 3 classes');
+% figure, imagesc(img_gray_otsu2); colormap(gray); title('Otsu niveau de gris 2 classes');
+% figure, imagesc(img_gray_otsu3); colormap(gray); title('Otsu niveau de gris 3 classes');
+% figure, imagesc(img_otsu2); title('Otsu couleur 2 classes');
+% figure, imagesc(img_otsu3); title('Otsu couleur 3 classes');
+% figure, imagesc(img_min_gray_otsu2); colormap(gray); title('Otsu niveau de gris min 2 classes');
+% figure, imagesc(img_min_gray_otsu3); colormap(gray); title('Otsu niveau de gris min 3 classes');
+% figure, imagesc(img_min_otsu2); title('Otsu couleur min 2 classes');
+% figure, imagesc(img_min_otsu3); title('Otsu couleur min 3 classes');
+% figure, imagesc(img_max_gray_otsu2); colormap(gray); title('Otsu niveau de gris 2 max classes');
+% figure, imagesc(img_max_gray_otsu3); colormap(gray); title('Otsu niveau de gris 3 max classes');
+% figure, imagesc(img_max_otsu2); title('Otsu couleur 2 max classes');
+% figure, imagesc(img_max_otsu3); title('Otsu couleur 3 max classes');
+% figure, imagesc(img_hist_gray_otsu2); colormap(gray); title('Otsu histogramme gris 2 classes');
+% figure, imagesc(img_hist_gray_otsu3); colormap(gray); title('Otsu histogramme gris 3 classes');
+% figure, imagesc(img_hist_color_otsu2); title('Otsu histogramme couleur 2 classes');
+% figure, imagesc(img_hist_color_otsu3); title('Otsu histogramme couleur 3 classes');
 
 %% 4)- Patch-based classification
 
 ps = 4;  %patch_size
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%% TO MODIFY %%%%%%%%%%%%%%%%%%%%%%%%%
-%Regular grid sampling.
-%Same pipeline.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
